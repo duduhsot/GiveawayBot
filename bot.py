@@ -411,14 +411,14 @@ if local:
     logger.info('polling messages...')
     updater.start_polling()
 else:
-    logger.info('setting webhook on "https://{0}.herokuapp.com//{1}" listening on address "{2}:{3}"...'.
+    logger.info('setting webhook on "https://{0}.herokuapp.com/{1}" listening on address "{2}:{3}"...'.
                 format(HEROKU_APP, TOKEN, "0.0.0.0", PORT))
     updater.start_webhook(listen="0.0.0.0",
                           port=int(PORT),
                           url_path=TOKEN,
-                          webhook_url="https://{0}.herokuapp.com//{1}".format(HEROKU_APP, TOKEN))
-    updater.bot.set_webhook('https://yourherokuappname.herokuapp.com/' + TOKEN)
-    bot.set_webhook("https://{0}/{1}".format(HEROKU_APP, TOKEN))
+                          webhook_url="https://{0}.herokuapp.com/{1}".format(HEROKU_APP, TOKEN))
+    updater.bot.set_webhook("https://{0}.herokuapp.com/{1}".format(HEROKU_APP, TOKEN))
+    bot.set_webhook("https://{0}.herokuapp.com/{1}".format(HEROKU_APP, TOKEN))
 
 # Run the bot until you press Ctrl-C or the process receives SIGINT,
 # SIGTERM or SIGABRT. This should be used most of the time, since
