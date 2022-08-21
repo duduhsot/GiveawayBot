@@ -61,6 +61,8 @@ fileHandler.setFormatter(formatter)
 logger.addHandler(ch)
 logger.addHandler(fileHandler)
 
+logger.info('logger created')
+
 
 # "application" code
 # logger.debug("debug message")
@@ -117,10 +119,12 @@ def reply(update: Update, context: CallbackContext):
 
 # /gc
 def giveaway_createHandler(update: Update, cb: CallbackContext):
+    logger.info('processing command "{0}"'.format(update.message.text))
     giveaway_create(update, update.effective_message.text)
 
 # creates a new giveaway and a post about it
 def giveaway_create(update :Update,command: str, photo_id :str = None):
+    logger.info('processing command "{0}"'.format(command))
     giveawayInfo = command.replace('/g_create', '').strip().split("''")
     # check params are correct
     if len(giveawayInfo) != 3:
@@ -167,6 +171,7 @@ def giveaway_create(update :Update,command: str, photo_id :str = None):
 
 # /gp
 def giveaway_post(update: Update, cb : CallbackContext):
+    logger.info('processing command "{0}"'.format(update.message.text))
     giveawayId = update.message.text.replace('/g_post', '').strip()
     if not checkGiveawayId(update, giveawayId): 
         return
@@ -179,6 +184,7 @@ def giveaway_post(update: Update, cb : CallbackContext):
 
 # /gs
 def giveaway_subs(update: Update, cb : CallbackContext):
+    logger.info('processing command "{0}"'.format(update.message.text))
     giveawayId = update.message.text.replace('/g_subs', '').strip()
     if not checkGiveawayId(update, giveawayId): 
         return
@@ -194,6 +200,7 @@ def giveaway_subs(update: Update, cb : CallbackContext):
 
 # /gf
 def giveaway_finish(update :Update, cb :CallbackContext):
+    logger.info('processing command "{0}"'.format(update.message.text))
     giveawayId = update.message.text.replace('/g_finish', '').strip()
     if not checkGiveawayId(update, giveawayId): 
         return
@@ -208,9 +215,11 @@ def giveaway_finish(update :Update, cb :CallbackContext):
 
 # /ge
 def giveaway_editHandler(update :Update, cb :CallbackContext):
+    logger.info('processing command "{0}"'.format(update.message.text))
     giveaway_edit(update, update.effective_message.text)
 
 def giveaway_edit(update :Update, command :str, photo_id :str = None):
+    logger.info('processing command "{0}"'.format(command))
     giveawayInfo = command.replace('/g_edit', '').strip().split("''")
     # check params are correct
     if len(giveawayInfo) != 4:
@@ -269,6 +278,7 @@ def unknown_command(update: Update, context: CallbackContext):
 
 # handles messages with photos
 def photoHandler(update: Update, cb: CallbackContext):
+    logger.info('processing photo with caption "{0}"'.format(update.effective_message.caption))
     message = update.effective_message
     text = message.caption
     photoId = message.photo[0].file_id
@@ -314,6 +324,7 @@ def run_test(update :Update, cb :CallbackContext):
     sendMessage(update, "/g_finish 2745cb60-a367-4bd8-9a49-054e268b35b1")
 
 def callback_query_handler(update: Update, context: CallbackContext):
+    logger.info('processing callback "{0}"'.format(update.callback_query.data))
     callbackData = update.callback_query.data
     if callbackData.startswith(SUBSCRIBE_KEYWORD):
         giveawayId = callbackData.replace(SUBSCRIBE_KEYWORD, '')
@@ -397,8 +408,11 @@ updater.dispatcher.add_handler(CallbackQueryHandler(callback_query_handler))
 # updater.dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
 
 if local:
+    logger.info('polling messages...')
     updater.start_polling()
 else:
+    logger.info('setting webhook on "https://{0}.herokuapp.com//{1}" listening on address "{2}:{3}"...'.
+                format(HEROKU_APP, TOKEN, "0.0.0.0", PORT))
     updater.start_webhook(listen="0.0.0.0",
                           port=int(PORT),
                           url_path=TOKEN,
