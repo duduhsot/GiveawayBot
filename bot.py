@@ -417,7 +417,14 @@ else:
                           port=int(PORT),
                           url_path=TOKEN,
                           webhook_url="https://{0}.herokuapp.com//{1}".format(HEROKU_APP, TOKEN))
-    # bot.set_webhook("https://{0}/{1}".format(HEROKU_APP, TOKEN))
+    updater.bot.set_webhook('https://yourherokuappname.herokuapp.com/' + TOKEN)
+    bot.set_webhook("https://{0}/{1}".format(HEROKU_APP, TOKEN))
+
+# Run the bot until you press Ctrl-C or the process receives SIGINT,
+# SIGTERM or SIGABRT. This should be used most of the time, since
+# start_polling() is non-blocking and will stop the bot gracefully.
+updater.idle()
+
 
 def restart_program():
     python = sys.executable
