@@ -21,7 +21,7 @@ from userInfo import UserInfo
 import pickle
 
 local = False
-PORT = '5000'
+PORT = '8443'
 TOKEN = "5726668567:AAEnt_hRMirItfq2Jrn-srH8OGRz_oVjNOI"
 HEROKU_APP = "chat-bot-yuki"
 
