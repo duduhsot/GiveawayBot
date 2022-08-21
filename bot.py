@@ -402,7 +402,7 @@ else:
     updater.start_webhook(listen="0.0.0.0",
                           port=int(PORT),
                           url_path=TOKEN,
-                          webhook_url="https://{0}/{1}".format(HEROKU_APP, TOKEN))
+                          webhook_url="https://{0}.herokuapp.com//{1}".format(HEROKU_APP, TOKEN))
     # bot.set_webhook("https://{0}/{1}".format(HEROKU_APP, TOKEN))
 
 def restart_program():
