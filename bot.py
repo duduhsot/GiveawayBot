@@ -1,12 +1,7 @@
-from bdb import effective
-from cgitb import text
-from locale import currency
 import os
 import os.path
 from pyclbr import Function
-from re import sub
 import sys
-from turtle import up
 from uuid import UUID, uuid4
 import telegram
 from telegram.ext.updater import Updater
