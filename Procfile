@@ -1,1 +1,1 @@
-web: python3 bot.py
+web: python bot.py runserver 0.0.0.0:8443
