@@ -25,10 +25,10 @@ from messageChecker import MessageChecker
 from userInfo import UserInfo
 import pickle
 
-local = True
+local = False
 PORT = '5000'
 TOKEN = "5726668567:AAEnt_hRMirItfq2Jrn-srH8OGRz_oVjNOI"
-HEROKU_APP = "https://secure-mesa-28219.herokuapp.com/"
+HEROKU_APP = "chat-bot-yuki"
 
 SUBSCRIBE_KEYWORD = 'subscribe_'
 UNSUBSCRIBE_KEYWORD = 'unsubscribe_'
@@ -407,8 +407,8 @@ else:
     updater.start_webhook(listen="0.0.0.0",
                           port=int(PORT),
                           url_path=TOKEN)
-    updater.bot.setWebhook(HEROKU_APP + TOKEN)
-    bot.set_webhook(HEROKU_APP + TOKEN)
+    updater.bot.setWebhook("https://{0}/{1}".format(HEROKU_APP, TOKEN))
+    bot.set_webhook("https://{0}/{1}".format(HEROKU_APP, TOKEN))
 
 def restart_program():
     python = sys.executable
