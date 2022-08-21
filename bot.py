@@ -401,9 +401,9 @@ if local:
 else:
     updater.start_webhook(listen="0.0.0.0",
                           port=int(PORT),
-                          url_path=TOKEN)
-    updater.bot.setWebhook("https://{0}/{1}".format(HEROKU_APP, TOKEN))
-    bot.set_webhook("https://{0}/{1}".format(HEROKU_APP, TOKEN))
+                          url_path=TOKEN,
+                          webhook_url="https://{0}/{1}".format(HEROKU_APP, TOKEN))
+    # bot.set_webhook("https://{0}/{1}".format(HEROKU_APP, TOKEN))
 
 def restart_program():
     python = sys.executable
