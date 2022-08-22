@@ -1,5 +1,5 @@
 # bot ignore
- config.py
+#  config.py
 giveaways/
 push.heroku.cmd
 push.git.cmd
@@ -86,7 +86,7 @@ target/
 
 # IPython
 profile_default/
-ipython_# `# # config.py
+ipython_# `# ##  config.py
 
 # pyenv
 #   For a library or package, you might want to ignore these files since the code is
