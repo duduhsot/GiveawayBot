@@ -1,5 +1,4 @@
 # bot ignore
-*config.py
 giveaways/
 push.heroku.cmd
 push.git.cmd
