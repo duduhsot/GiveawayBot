@@ -1,7 +1,8 @@
 # bot ignore
-config.py
+ config.py
 giveaways/
 push.heroku.cmd
+push.git.cmd
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -85,7 +86,7 @@ target/
 
 # IPython
 profile_default/
-ipython_config.py
+ipython_# `# # config.py
 
 # pyenv
 #   For a library or package, you might want to ignore these files since the code is
