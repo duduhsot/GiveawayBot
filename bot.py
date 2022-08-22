@@ -11,7 +11,6 @@ from telegram.ext.commandhandler import CommandHandler
 from telegram.ext.messagehandler import MessageHandler
 from telegram.ext.filters import Filters
 from telegram.ext import CallbackQueryHandler
-from telegram.bot import Bot
 from telegram.parsemode import ParseMode
 import logging
 from command import Command
@@ -19,6 +18,7 @@ from giveaway import Giveaway
 from messageChecker import MessageChecker
 from userInfo import UserInfo
 import pickle
+from chatFunc import ChatFunc
 
 local = False
 PORT = os.getenv('PORT', default=8443)
@@ -30,6 +30,8 @@ UNSUBSCRIBE_KEYWORD = 'unsubscribe_'
 INFO_KEYWORD = 'info'
 CURRENCY = 'Social Credit'
 GIVEAWAYS_PATH = './giveaways'
+
+WEBHOOK_URL = "https://{0}.herokuapp.com/{1}".format(HEROKU_APP, TOKEN) 
 
 chatRules = [
     MessageChecker(['дефка', 'девка', 'месяки'], -500, CURRENCY, 'Отправляйся в гулаг грязный женаненавистник!'),
@@ -77,6 +79,84 @@ updater = Updater(TOKEN,
                   use_context=True)
 
 bot = telegram.Bot(token=TOKEN)
+chatFunc = ChatFunc(bot)
+
+
+
+def restart_program():
+    python = sys.executable
+    os.execl(python, python, * sys.argv)
+
+def loadGiveaway(giveawayId:str):
+    with open(os.path.join(GIVEAWAYS_PATH, 'g_%s.pkl' % giveawayId), 'rb') as giveaway_file:
+        giveaway :Giveaway = pickle.load(giveaway_file)
+        return giveaway
+
+def saveGiveaway(giveaway :Giveaway):
+    if not os.path.exists(GIVEAWAYS_PATH):
+        os.mkdir(GIVEAWAYS_PATH)
+    with open(os.path.join(GIVEAWAYS_PATH, 'g_%s.pkl' % giveaway.id), 'wb') as giveaway_file:
+        pickle.dump(giveaway, giveaway_file)
+
+def checkIfAuthor(giveaway :Giveaway, update :Update, doStuff: Function):
+    if update.effective_user.id == giveaway.author:
+        doStuff(giveaway, update)
+    else:
+        chatFunc.sendDontHavePermission(update, giveaway)
+
+def makeGiveawayPost(giveaway:Giveaway, update:Update):
+    button_s = [telegram.InlineKeyboardButton(
+        text='subscribe', callback_data=SUBSCRIBE_KEYWORD + str(giveaway.id))]
+    button_u = [telegram.InlineKeyboardButton(
+        text='unsubscribe', callback_data=UNSUBSCRIBE_KEYWORD + str(giveaway.id))]
+    keyboard = telegram.InlineKeyboardMarkup([button_s, button_u])
+    text = '<strong>{0}</strong>\n{1}'.format(giveaway.name, giveaway.description)
+    if giveaway.photoId:
+        bot.send_photo(
+            chat_id = update.effective_chat.id,
+            photo = giveaway.photoId,
+            caption = text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=keyboard,
+        )
+    else:
+        bot.send_message(
+            chat_id = update.effective_chat.id,
+            text = text,
+            parse_mode=ParseMode.HTML,
+            reply_markup=keyboard,
+        )
+
+def makeGiveawayEndPost(giveaway:Giveaway, update:Update, winners :str):
+    text = '<strong>{0} has finished!</strong>\nCongratulations to our winners:\n{1}'.format(giveaway.name, winners )
+    if giveaway.photoId:
+        bot.send_photo(
+            chat_id = update.effective_chat.id,
+            photo = giveaway.photoId,
+            caption = text,
+            parse_mode=ParseMode.HTML,
+        )
+    else:
+        bot.send_message(
+            chat_id = update.effective_chat.id,
+            text = text,
+            parse_mode=ParseMode.HTML,
+        )
+
+def checkGiveawayId(update :Update,giveawayId :str):
+    # check params are correct
+    if not giveawayId:
+        bot.sendMessage(chat_id=update.effective_chat.id,
+                        text='Please specify giveawayId')
+        return False
+    if not giveawayExists(giveawayId):
+        bot.sendMessage(chat_id=update.effective_chat.id,
+                        text='Giveaway with id "%s" does not exist' % giveawayId)
+        return False
+    return True
+
+def giveawayExists(guid :str):
+    return os.path.exists(os.path.join(GIVEAWAYS_PATH, 'g_%s.pkl' % guid))
 
 # /start
 def start(update: Update, context: CallbackContext):
@@ -108,7 +188,7 @@ def info(update: Update, context: CallbackContext):
 def restart(update: Update, context: CallbackContext):
     bot.sendMessage(chat_id=update.effective_chat.id,
                     text='Bot will be back in 5 seconds!')
-    deleteOriginalMessage(update) 
+    chatFunc.deleteOriginalMessage(update) 
     restart_program()
 
 # /reply
@@ -167,7 +247,7 @@ def giveaway_create(update :Update,command: str, photo_id :str = None):
     bot.sendMessage(chat_id=newGiveaway.author,
                     text='New giveaway created!\ngiveawayId:{0}\nFirst posted in chatId:{1}\nNumberOfWinners:{2}\name:{3}\ndescription:{4}'.
                     format(newGiveaway.id, update.effective_chat.id,newGiveaway.numberOfWinners,newGiveaway.name,newGiveaway.description))
-    deleteOriginalMessage(update) 
+    chatFunc.deleteOriginalMessage(update) 
 
 # /gp
 def giveaway_post(update: Update, cb : CallbackContext):
@@ -180,7 +260,7 @@ def giveaway_post(update: Update, cb : CallbackContext):
     bot.sendMessage(chat_id= giveaway.author,
                     text='New giveaway post created!\ngiveawayId:{0}\nPosted in chatId:{1}'.
                     format(giveaway.id, update.effective_chat.id))
-    deleteOriginalMessage(update) 
+    chatFunc.deleteOriginalMessage(update) 
 
 # /gs
 def giveaway_subs(update: Update, cb : CallbackContext):
@@ -195,8 +275,8 @@ def giveaway_subs(update: Update, cb : CallbackContext):
         bot.send_message(chat_id = update.effective_chat.id,
                         text = subsDsc)
     else:
-        sendDontHavePermission(update, giveaway)
-    deleteOriginalMessage(update) 
+        chatFunc.sendDontHavePermission(update, giveaway)
+    chatFunc.deleteOriginalMessage(update) 
 
 # /gf
 def giveaway_finish(update :Update, cb :CallbackContext):
@@ -210,8 +290,8 @@ def giveaway_finish(update :Update, cb :CallbackContext):
         makeGiveawayEndPost(giveaway, update, winners)
         saveGiveaway(giveaway)
     else:
-        sendDontHavePermission(update, giveaway)
-    deleteOriginalMessage(update) 
+        chatFunc.sendDontHavePermission(update, giveaway)
+    chatFunc.deleteOriginalMessage(update) 
 
 # /ge
 def giveaway_editHandler(update :Update, cb :CallbackContext):
@@ -298,30 +378,30 @@ def photoHandler(update: Update, cb: CallbackContext):
 
 # /run_test
 def run_test(update :Update, cb :CallbackContext):
-    sendMessage(update, "/g_create 1''tst''tst")
-    sendMessage(update, "/g_create")
-    sendMessage(update, "/g_create ''''''''")
-    sendMessage(update, "/g_create -1''tst''tst")
-    sendMessage(update, "/g_create -1''tst''tst")
-    sendMessage(update, "/g_create 1''''tst")
-    sendMessage(update, "/g_create 1''tst''")
-    sendMessage(update, "/g_create 1''tst")
+    chatFunc.sendMessage(update, "/g_create 1''tst''tst")
+    chatFunc.sendMessage(update, "/g_create")
+    chatFunc.sendMessage(update, "/g_create ''''''''")
+    chatFunc.sendMessage(update, "/g_create -1''tst''tst")
+    chatFunc.sendMessage(update, "/g_create -1''tst''tst")
+    chatFunc.sendMessage(update, "/g_create 1''''tst")
+    chatFunc.sendMessage(update, "/g_create 1''tst''")
+    chatFunc.sendMessage(update, "/g_create 1''tst")
     with open('JordanPeterson.jpg', 'rb') as jordan_picture:
         bot.send_photo(chat_id=update.effective_chat.id,
                         photo = jordan_picture, 
                         caption = "/g_create 1''tst''tst")
 
-    sendMessage(update, "/g_post ")
-    sendMessage(update, "/g_post 2")
-    sendMessage(update, "/g_post 2745cb60-a367-4bd8-9a49-054e268b35b1")
+    chatFunc.sendMessage(update, "/g_post ")
+    chatFunc.sendMessage(update, "/g_post 2")
+    chatFunc.sendMessage(update, "/g_post 2745cb60-a367-4bd8-9a49-054e268b35b1")
 
-    sendMessage(update, "/g_subs ")
-    sendMessage(update, "/g_subs 2")
-    sendMessage(update, "/g_subs 2745cb60-a367-4bd8-9a49-054e268b35b1")
+    chatFunc.sendMessage(update, "/g_subs ")
+    chatFunc.sendMessage(update, "/g_subs 2")
+    chatFunc.sendMessage(update, "/g_subs 2745cb60-a367-4bd8-9a49-054e268b35b1")
 
-    sendMessage(update, "/g_finish ")
-    sendMessage(update, "/g_finish 2")
-    sendMessage(update, "/g_finish 2745cb60-a367-4bd8-9a49-054e268b35b1")
+    chatFunc.sendMessage(update, "/g_finish ")
+    chatFunc.sendMessage(update, "/g_finish 2")
+    chatFunc.sendMessage(update, "/g_finish 2745cb60-a367-4bd8-9a49-054e268b35b1")
 
 def callback_query_handler(update: Update, context: CallbackContext):
     logger.info('processing callback "{0}"'.format(update.callback_query.data))
@@ -411,106 +491,16 @@ if local:
     logger.info('polling messages...')
     updater.start_polling()
 else:
-    logger.info('setting webhook on "https://{0}.herokuapp.com/{1}" listening on address "{2}:{3}"...'.
-                format(HEROKU_APP, TOKEN, "0.0.0.0", PORT))
+    logger.info('setting webhook on "{0}" listening on address "{1}:{2}"...'.
+                format(WEBHOOK_URL, "0.0.0.0", PORT))
     updater.start_webhook(listen="0.0.0.0",
                           port=int(PORT),
                           url_path=TOKEN,
-                          webhook_url="https://{0}.herokuapp.com/{1}".format(HEROKU_APP, TOKEN))
-    updater.bot.set_webhook("https://{0}.herokuapp.com/{1}".format(HEROKU_APP, TOKEN))
-    bot.set_webhook("https://{0}.herokuapp.com/{1}".format(HEROKU_APP, TOKEN))
+                          webhook_url=WEBHOOK_URL)
+    updater.bot.set_webhook(WEBHOOK_URL)
+    bot.set_webhook(WEBHOOK_URL)
 
 # Run the bot until you press Ctrl-C or the process receives SIGINT,
 # SIGTERM or SIGABRT. This should be used most of the time, since
 # start_polling() is non-blocking and will stop the bot gracefully.
 updater.idle()
-
-
-def restart_program():
-    python = sys.executable
-    os.execl(python, python, * sys.argv)
-
-def loadGiveaway(giveawayId:str):
-    with open(os.path.join(GIVEAWAYS_PATH, 'g_%s.pkl' % giveawayId), 'rb') as giveaway_file:
-        giveaway :Giveaway = pickle.load(giveaway_file)
-        return giveaway
-
-def saveGiveaway(giveaway :Giveaway):
-    if not os.path.exists(GIVEAWAYS_PATH):
-        os.mkdir(GIVEAWAYS_PATH)
-    with open(os.path.join(GIVEAWAYS_PATH, 'g_%s.pkl' % giveaway.id), 'wb') as giveaway_file:
-        pickle.dump(giveaway, giveaway_file)
-
-def checkIfAuthor(giveaway :Giveaway, update :Update, doStuff: Function):
-    if update.effective_user.id == giveaway.author:
-        doStuff(giveaway, update)
-    else:
-        sendDontHavePermission(update, giveaway)
-
-def sendDontHavePermission(update :Update, giveaway :Giveaway):
-        bot.sendMessage(chat_id= update.effective_chat.id,
-        text="You do not have permission for this command!\nPlease contact %s." % giveaway.authorNick)
-
-def makeGiveawayPost(giveaway:Giveaway, update:Update):
-    button_s = [telegram.InlineKeyboardButton(
-        text='subscribe', callback_data=SUBSCRIBE_KEYWORD + str(giveaway.id))]
-    button_u = [telegram.InlineKeyboardButton(
-        text='unsubscribe', callback_data=UNSUBSCRIBE_KEYWORD + str(giveaway.id))]
-    keyboard = telegram.InlineKeyboardMarkup([button_s, button_u])
-    text = '<strong>{0}</strong>\n{1}'.format(giveaway.name, giveaway.description)
-    if giveaway.photoId:
-        bot.send_photo(
-            chat_id = update.effective_chat.id,
-            photo = giveaway.photoId,
-            caption = text,
-            parse_mode=ParseMode.HTML,
-            reply_markup=keyboard,
-        )
-    else:
-        bot.send_message(
-            chat_id = update.effective_chat.id,
-            text = text,
-            parse_mode=ParseMode.HTML,
-            reply_markup=keyboard,
-        )
-
-def makeGiveawayEndPost(giveaway:Giveaway, update:Update, winners :str):
-    text = '<strong>{0} has finished!</strong>\nCongratulations to our winners:\n{1}'.format(giveaway.name, winners )
-    if giveaway.photoId:
-        bot.send_photo(
-            chat_id = update.effective_chat.id,
-            photo = giveaway.photoId,
-            caption = text,
-            parse_mode=ParseMode.HTML,
-        )
-    else:
-        bot.send_message(
-            chat_id = update.effective_chat.id,
-            text = text,
-            parse_mode=ParseMode.HTML,
-        )
-
-
-def deleteOriginalMessage(update :Update):
-    bot.deleteMessage(chat_id = update.message.chat_id,
-                    message_id = update.message.message_id
-            ) 
-
-def checkGiveawayId(update :Update,giveawayId :str):
-    # check params are correct
-    if not giveawayId:
-        bot.sendMessage(chat_id=update.effective_chat.id,
-                        text='Please specify giveawayId')
-        return False
-    if not giveawayExists(giveawayId):
-        bot.sendMessage(chat_id=update.effective_chat.id,
-                        text='Giveaway with id "%s" does not exist' % giveawayId)
-        return False
-    return True
-
-def giveawayExists(guid :str):
-    return os.path.exists(os.path.join(GIVEAWAYS_PATH, 'g_%s.pkl' % guid))
-
-def sendMessage(update :Update, message :str):
-    bot.send_message(chat_id = update.effective_chat.id,
-                    text = message)
