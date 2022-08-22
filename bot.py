@@ -12,16 +12,14 @@ from telegram.ext.messagehandler import MessageHandler
 from telegram.ext.filters import Filters
 from telegram.ext import CallbackQueryHandler
 from telegram.parsemode import ParseMode
+from config import HEROKU_APP, LOCAL, TOKEN
 from giveaway import Giveaway
 from log import Log
 from userInfo import UserInfo
 import pickle
 from chatFunc import ChatFunc
 
-local = False
 PORT = os.getenv('PORT', default=8443)
-TOKEN = "5726668567:AAEnt_hRMirItfq2Jrn-srH8OGRz_oVjNOI"
-HEROKU_APP = "chat-bot-yuki"
 
 SUBSCRIBE_KEYWORD = 'subscribe_'
 UNSUBSCRIBE_KEYWORD = 'unsubscribe_'
@@ -123,7 +121,7 @@ def help(update: Update, context: CallbackContext):
 
 # /restart
 def restart(update: Update, context: CallbackContext):
-    if not local: 
+    if not LOCAL: 
         return
     bot.sendMessage(chat_id=update.effective_chat.id,
                     text='Bot will be back in 5 seconds!')
@@ -358,7 +356,7 @@ updater.dispatcher.add_handler(MessageHandler(Filters.photo, photoHandler))
 # processes buttons requests
 updater.dispatcher.add_handler(CallbackQueryHandler(callback_query_handler))
 
-if local:
+if LOCAL:
     log.info('polling messages...')
     updater.start_polling()
 else:
