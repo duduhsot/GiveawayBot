@@ -1,20 +1,20 @@
 # Телеграм бот для проведения розыгрышей
-[Eng 🇺🇸](https://github.com/dkjfo-lib/Tg_GiveawayBot),
-[Rus 🇷🇺](https://github.com/dkjfo-lib/Tg_GiveawayBot_ru)
+[Eng 🇺🇸](https://github.com/dkjfo-lib/Tg_GiveawayBot/blob/main/README.md),
+[Rus 🇷🇺](https://github.com/dkjfo-lib/Tg_GiveawayBot/blob/main/README_ru.md)
 
 Это телеграм бот разработанный для проведения розыгрышей подарков среди подписчиков групп.
 
 ## Комманды
 
-[/g_create   Создает новый розыгрыш.](https://github.com/dkjfo-lib/Tg_GiveawayBot_ru#g_create)
+[/g_create   Создает новый розыгрыш.](https://github.com/dkjfo-lib/Tg_GiveawayBot/blob/main/README_ru.md#g_create)
 
-[/g_edit     Изменяет параметры розыгрыша.](https://github.com/dkjfo-lib/Tg_GiveawayBot_ru#g_edit)
+[/g_edit     Изменяет параметры розыгрыша.](https://github.com/dkjfo-lib/Tg_GiveawayBot/blob/main/README_ru.md#g_edit)
 
-[/g_subs     Показывает подписчиков розыгрыша.](https://github.com/dkjfo-lib/Tg_GiveawayBot_ru#g_subs)
+[/g_subs     Показывает подписчиков розыгрыша.](https://github.com/dkjfo-lib/Tg_GiveawayBot/blob/main/README_ru.md#g_subs)
 
-[/g_post     Создает пост в чате о розыгрыше.](https://github.com/dkjfo-lib/Tg_GiveawayBot_ru#g_post)
+[/g_post     Создает пост в чате о розыгрыше.](https://github.com/dkjfo-lib/Tg_GiveawayBot/blob/main/README_ru.md#g_post)
 
-[/g_finish   Заканчивает розыгрыш и объявляет победителей.](https://github.com/dkjfo-lib/Tg_GiveawayBot_ru#g_finish)
+[/g_finish   Заканчивает розыгрыш и объявляет победителей.](https://github.com/dkjfo-lib/Tg_GiveawayBot/blob/main/README_ru.md#g_finish)
 
 Только автор розыгрыша может создавать посты о нем, редактировать его содержимое, просматривать подписчиков и заканчивать его.
 
