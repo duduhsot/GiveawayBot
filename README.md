@@ -49,7 +49,7 @@ Changes parameters of a given giveaway.
 
 Arguments:
 
-    - Giveaway Id
+    - Giveaway Id (Is sent to you when new giveaway is created)
     - Number of winners
     - Giveaway name
     - Giveaway Description
@@ -64,7 +64,7 @@ Displays subscribed users of a given giveaway.
 
 Arguments:
 
-    - Giveaway Id
+    - Giveaway Id (Is sent to you when new giveaway is created)
 
 Example:
 
@@ -75,7 +75,7 @@ Creates post about a given giveaway.
 
 Arguments:
 
-    - Giveaway Id
+    - Giveaway Id (Is sent to you when new giveaway is created)
 
 Example:
 
@@ -86,7 +86,7 @@ Declares winners of a given giveaway.
 
 Arguments:
 
-    - Giveaway Id
+    - Giveaway Id (Is sent to you when new giveaway is created)
 
 Example:
 

@@ -2,7 +2,7 @@ import os
 import os.path
 from pyclbr import Function
 import sys
-from uuid import UUID, uuid4
+from uuid import uuid4
 import telegram
 from telegram.ext.updater import Updater
 from telegram.update import Update
@@ -18,19 +18,17 @@ from log import Log
 from userInfo import UserInfo
 import pickle
 from chatFunc import ChatFunc
+from locals import get_line
 
 PORT = os.getenv('PORT', default=8443)
 
 SUBSCRIBE_KEYWORD = 'subscribe_'
 UNSUBSCRIBE_KEYWORD = 'unsubscribe_'
-INFO_KEYWORD = 'info'
-CURRENCY = 'Social Credit'
 GIVEAWAYS_PATH = './giveaways'
 WEBHOOK_URL = "https://{0}.herokuapp.com/{1}".format(HEROKU_APP, TOKEN) 
+langId = 1
 
-updater = Updater(TOKEN,
-                  use_context=True)
-
+updater = Updater(TOKEN, use_context=True)
 bot = telegram.Bot(token=TOKEN)
 chatFunc = ChatFunc(bot)
 log = Log()
@@ -58,9 +56,9 @@ def checkIfAuthor(giveaway :Giveaway, update :Update, doStuff: Function):
 
 def makeGiveawayPost(giveaway:Giveaway, update:Update):
     button_s = [telegram.InlineKeyboardButton(
-        text='subscribe', callback_data=SUBSCRIBE_KEYWORD + str(giveaway.id))]
+        text= get_line(langId, 'btn_sub_txt'), callback_data=SUBSCRIBE_KEYWORD + str(giveaway.id))]
     button_u = [telegram.InlineKeyboardButton(
-        text='unsubscribe', callback_data=UNSUBSCRIBE_KEYWORD + str(giveaway.id))]
+        text= get_line(langId, 'btn_unsub_txt'), callback_data=UNSUBSCRIBE_KEYWORD + str(giveaway.id))]
     keyboard = telegram.InlineKeyboardMarkup([button_s, button_u])
     text = '<strong>{0}</strong>\n{1}'.format(giveaway.name, giveaway.description)
     if giveaway.photoId:
@@ -80,7 +78,7 @@ def makeGiveawayPost(giveaway:Giveaway, update:Update):
         )
 
 def makeGiveawayEndPost(giveaway:Giveaway, update:Update, winners :str):
-    text = '<strong>{0} has finished!</strong>\nCongratulations to our winners:\n{1}'.format(giveaway.name, winners )
+    text = get_line(langId, 'post_g_finished').format(giveaway.name, winners )
     if giveaway.photoId:
         bot.send_photo(
             chat_id = update.effective_chat.id,
@@ -99,11 +97,11 @@ def checkGiveawayId(update :Update,giveawayId :str):
     # check params are correct
     if not giveawayId:
         bot.sendMessage(chat_id=update.effective_chat.id,
-                        text='Please specify giveawayId')
+                        text= get_line(langId, 'err_no_g_id'))
         return False
     if not giveawayExists(giveawayId):
         bot.sendMessage(chat_id=update.effective_chat.id,
-                        text='Giveaway with id "%s" does not exist' % giveawayId)
+                        text= get_line(langId, 'err_no_g_exists') % giveawayId)
         return False
     return True
 
@@ -112,19 +110,18 @@ def giveawayExists(guid :str):
 
 # /start
 def start(update: Update, context: CallbackContext):
-    update.message.reply_text(
-        """M'Lord, I am your trusty bot!""")
+    update.message.reply_text(get_line(langId, 'cmd_start'))
 
 # /help
 def help(update: Update, context: CallbackContext):
-    update.message.reply_text("Go fuck yourself!")
+    update.message.reply_text(get_line(langId, 'cmd_help'))
 
 # /restart
 def restart(update: Update, context: CallbackContext):
     if not LOCAL: 
         return
     bot.sendMessage(chat_id=update.effective_chat.id,
-                    text='Bot will be back in 5 seconds!')
+                    text= get_line(langId, 'cmd_restart'))
     chatFunc.deleteOriginalMessage(update) 
     restart_program()
 
@@ -140,23 +137,23 @@ def giveaway_create(update :Update,command: str, photo_id :str = None):
     # check params are correct
     if len(giveawayInfo) != 3:
         bot.sendMessage(chat_id=update.effective_chat.id,
-                        text="Expected three parameters in format \"/g_create Now''name''description\", but got %s parameters" % len(giveawayInfo))
+                        text= get_line(langId, 'err_wr_create_params') % len(giveawayInfo))
         return
     if not giveawayInfo[1]:
         bot.sendMessage(chat_id=update.effective_chat.id,
-                        text='Giveaway is missing the name')
+                        text= get_line(langId, 'err_no_g_name'))
         return
     if not giveawayInfo[2]:
         bot.sendMessage(chat_id=update.effective_chat.id,
-                        text='Giveaway is missing the description')
+                        text= get_line(langId, 'err_no_g_descr'))
         return
     if (not giveawayInfo[0]) | (not giveawayInfo[0].isdigit()):
         bot.sendMessage(chat_id=update.effective_chat.id,
-                        text='Giveaway is missing the NumberOfWinners')
+                        text= get_line(langId, 'err_no_g_NoW'))
         return
     if int(giveawayInfo[0]) < 1:
         bot.sendMessage(chat_id=update.effective_chat.id,
-                        text='NumberOfWinners should be greater than zero')
+                        text= get_line(langId, 'err_wr_g_NoW'))
         return
 
 
@@ -176,7 +173,7 @@ def giveaway_create(update :Update,command: str, photo_id :str = None):
 
     makeGiveawayPost(newGiveaway, update)
     bot.sendMessage(chat_id=newGiveaway.author,
-                    text='New giveaway created!\ngiveawayId:{0}\nFirst posted in chatId:{1}\nNumberOfWinners:{2}\name:{3}\ndescription:{4}'.
+                    text= get_line(langId, 'msg_g_created').
                     format(newGiveaway.id, update.effective_chat.id,newGiveaway.numberOfWinners,newGiveaway.name,newGiveaway.description))
     chatFunc.deleteOriginalMessage(update) 
 
@@ -189,7 +186,7 @@ def giveaway_post(update: Update, cb : CallbackContext):
     giveaway = loadGiveaway(giveawayId)
     checkIfAuthor(giveaway, update, makeGiveawayPost)
     bot.sendMessage(chat_id= giveaway.author,
-                    text='New giveaway post created!\ngiveawayId:{0}\nPosted in chatId:{1}'.
+                    text= get_line(langId, 'msg_g_post_created').
                     format(giveaway.id, update.effective_chat.id))
     chatFunc.deleteOriginalMessage(update) 
 
@@ -202,7 +199,7 @@ def giveaway_subs(update: Update, cb : CallbackContext):
     giveaway = loadGiveaway(giveawayId)
     if update.effective_user.id == giveaway.author:
         subs = [sub.name for sub in giveaway.subscribers]
-        subsDsc = "Number of subs: {0}\n{1}".format(str(len(subs)), '\n'.join(subs))
+        subsDsc = get_line(langId, 'cmd_giveaway_subs').format(str(len(subs)), '\n'.join(subs))
         bot.send_message(chat_id = update.effective_chat.id,
                         text = subsDsc)
     else:
@@ -235,7 +232,7 @@ def giveaway_edit(update :Update, command :str, photo_id :str = None):
     # check params are correct
     if len(giveawayInfo) != 4:
         bot.sendMessage(chat_id=update.effective_chat.id,
-                        text="Expected three parameters in format \"/g_edit GiveawayId''Now''name''description\", but got %s parameters" % len(giveawayInfo))
+                        text= get_line(langId, 'err_wr_edit_params') % len(giveawayInfo))
         return
     giveawayId = giveawayInfo[0]
     newNoW = giveawayInfo[1]
@@ -245,19 +242,19 @@ def giveaway_edit(update :Update, command :str, photo_id :str = None):
         return
     if not newName:
         bot.sendMessage(chat_id=update.effective_chat.id,
-                        text='Giveaway is missing the name')
+                        text= get_line(langId, 'err_no_g_name'))
         return
     if not newDescription:
         bot.sendMessage(chat_id=update.effective_chat.id,
-                        text='Giveaway is missing the description')
+                        text= get_line(langId, 'err_no_g_descr'))
         return
     if (not newNoW) | (not newNoW.isdigit()):
         bot.sendMessage(chat_id=update.effective_chat.id,
-                        text='Giveaway is missing the NumberOfWinners')
+                        text= get_line(langId, 'err_no_g_NoW'))
         return
     if int(newNoW) < 1:
         bot.sendMessage(chat_id=update.effective_chat.id,
-                        text='NumberOfWinners should be greater than zero')
+                        text= get_line(langId, 'err_wr_g_NoW'))
         return
 
     giveaway = loadGiveaway(giveawayId)
@@ -289,14 +286,14 @@ def callback_query_handler(update: Update, context: CallbackContext):
         giveawayId = callbackData.replace(SUBSCRIBE_KEYWORD, '')
         giveaway = loadGiveaway(giveawayId)
         user = UserInfo(update)
-        if giveaway.containsUser(user):
-            bot.sendMessage(chat_id=update.effective_chat.id,
-                            text='%s is already subscribed to the giveaway' % update.effective_user.name)
-        else:
+        if not giveaway.containsUser(user):
             giveaway.subscribers.append(user)
             saveGiveaway(giveaway)
-            bot.sendMessage(chat_id=update.effective_chat.id,
-                            text='%s has been added to the giveaway subscribers' % update.effective_user.name)
+            # bot.sendMessage(chat_id=update.effective_chat.id,
+            #                 text='%s has been added to the giveaway subscribers' % update.effective_user.name)
+        # else:
+            # bot.sendMessage(chat_id=update.effective_chat.id,
+            #                 text='%s is already subscribed to the giveaway' % update.effective_user.name)
         return
     if callbackData.startswith(UNSUBSCRIBE_KEYWORD):
         giveawayId = callbackData.replace(UNSUBSCRIBE_KEYWORD, '')
@@ -306,23 +303,11 @@ def callback_query_handler(update: Update, context: CallbackContext):
         if sameUser:
             giveaway.subscribers.remove(sameUser)
             saveGiveaway(giveaway)
-            bot.sendMessage(chat_id=update.effective_chat.id,
-                            text='%s has been unsubscribed from the giveaway' % update.effective_user.name)
-            print(giveaway.containsUser(sameUser))
-        else:
-            bot.sendMessage(chat_id=update.effective_chat.id,
-                            text='%s is not in the giveaway' % update.effective_user.name)
-        return
-    if callbackData.startswith(INFO_KEYWORD):
-        userInfo = 'userId:{0}\nuserName:{1}\nchatId:{2}'.format(
-            update.effective_user.id,
-            update.effective_user.username,
-            update.effective_chat.id
-        )
-        bot.sendMessage(
-            chat_id=update.effective_chat.id,
-            text=userInfo
-        )
+            # bot.sendMessage(chat_id=update.effective_chat.id,
+            #                 text='%s has been unsubscribed from the giveaway' % update.effective_user.name)
+        # else:
+            # bot.sendMessage(chat_id=update.effective_chat.id,
+            #                 text='%s is not in the giveaway' % update.effective_user.name)
         return
 
 # inDev
@@ -330,6 +315,8 @@ def inDev(update: Update, context: CallbackContext):
     update.message.reply_text(
         "In development")
 
+updater.dispatcher.add_handler(CommandHandler('start', start))
+updater.dispatcher.add_handler(CommandHandler('help', help))
 updater.dispatcher.add_handler(CommandHandler('restart', restart))
 # create new giveaway with Description, Number of winners
 # /g_create NoW''Name''Description
