@@ -1,6 +1,6 @@
 # GIVEAWAY BOT
-[Eng 🇺🇸](https://github.com/dkjfo-lib/Tg_GiveawayBot),
-[Rus 🇷🇺](https://github.com/dkjfo-lib/Tg_GiveawayBot_ru)
+[Eng 🇺🇸](https://github.com/dkjfo-lib/Tg_GiveawayBot/blob/main/README.md),
+[Rus 🇷🇺](https://github.com/dkjfo-lib/Tg_GiveawayBot/blob/main/README_ru.md)
 
 Telegram bot created for creating and managing giveaways and choosing giveaway winners.
 
