@@ -1,8 +1,8 @@
 # bot ignore
-
 giveaways/
 push.heroku.cmd
 push.git.cmd
+set_local.cmd
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
