@@ -351,15 +351,15 @@ def tst(update: Update, context: CallbackContext):
     update.message.reply_text(message, reply_markup=reply_markup)
 
 
-updater.dispatcher.add_handler(ConversationHandler(
-        entry_points=[CallbackQueryHandler(callback_query_handler)],
-        states={
-            1: [MessageHandler(Filters.text, name_input_by_user)],
-            2: [CallbackQueryHandler(button_click_handler)]
-        },
-        fallbacks=[CommandHandler('cancel', cancel)],
-        per_user=True
-    ))
+# updater.dispatcher.add_handler(ConversationHandler(
+#         entry_points=[CallbackQueryHandler(callback_query_handler)],
+#         states={
+#             1: [MessageHandler(Filters.text, name_input_by_user)],
+#             2: [CallbackQueryHandler(button_click_handler)]
+#         },
+#         fallbacks=[CommandHandler('cancel', cancel)],
+#         per_user=True
+#     ))
 updater.dispatcher.add_handler(CommandHandler('tst', tst))
 updater.dispatcher.add_handler(CommandHandler('start', start))
 updater.dispatcher.add_handler(CommandHandler('help', help))
