@@ -1,7 +1,9 @@
+from ntpath import join
 import os
 import os.path
 from pyclbr import Function
 import sys
+from typing import List
 from uuid import uuid4
 import telegram
 from telegram.ext.updater import Updater
@@ -9,6 +11,7 @@ from telegram.update import Update
 from telegram.ext.callbackcontext import CallbackContext
 from telegram.ext.commandhandler import CommandHandler
 from telegram.ext.messagehandler import MessageHandler
+from telegram.ext.conversationhandler import ConversationHandler
 from telegram.ext.filters import Filters
 from telegram.ext import CallbackQueryHandler
 from telegram.parsemode import ParseMode
@@ -37,7 +40,7 @@ def restart_program():
     python = sys.executable
     os.execl(python, python, * sys.argv)
 
-def loadGiveaway(giveawayId:str):
+def loadGiveaway(giveawayId:str) -> Giveaway:
     with open(os.path.join(GIVEAWAYS_PATH, 'g_%s.pkl' % giveawayId), 'rb') as giveaway_file:
         giveaway :Giveaway = pickle.load(giveaway_file)
         return giveaway
@@ -49,7 +52,7 @@ def saveGiveaway(giveaway :Giveaway):
         pickle.dump(giveaway, giveaway_file)
 
 def checkIfAuthor(giveaway :Giveaway, update :Update, doStuff: Function):
-    if update.effective_user.id == giveaway.author:
+    if giveaway.is_Author(update.effective_user.id):
         doStuff(giveaway, update)
     else:
         chatFunc.sendDontHavePermission(update, giveaway)
@@ -280,6 +283,7 @@ def photoHandler(update: Update, cb: CallbackContext):
         giveaway_edit(update, message.caption, photoId)
 
 def callback_query_handler(update: Update, context: CallbackContext):
+    update.callback_query.answer()
     log.info('processing callback "{0}"'.format(update.callback_query.data))
     callbackData = update.callback_query.data
     if callbackData.startswith(SUBSCRIBE_KEYWORD):
@@ -309,12 +313,54 @@ def callback_query_handler(update: Update, context: CallbackContext):
             # bot.sendMessage(chat_id=update.effective_chat.id,
             #                 text='%s is not in the giveaway' % update.effective_user.name)
         return
+    if callbackData.startswith('EDIT '):
+        giveawayId = callbackData.replace('EDIT ', '')
+        giveaway = loadGiveaway(giveawayId)
+        return
 
 # inDev
 def inDev(update: Update, context: CallbackContext):
     update.message.reply_text(
         "In development")
 
+def tst(update: Update, context: CallbackContext):
+
+    # get all giveaways names
+    giveaway_files = [f for f in os.listdir(GIVEAWAYS_PATH) if os.path.isfile(
+        os.path.join(GIVEAWAYS_PATH, f)) and f.startswith('g_') and f.endswith('.pkl')]
+    
+    user_giveaways :List[Giveaway] = [] 
+    for f in giveaway_files:
+        giveaway_id = f.replace('g_', '').replace('.pkl', '')
+        giveaway = loadGiveaway(giveaway_id)
+        if giveaway.is_Author(update.effective_user.id):
+            user_giveaways.append(giveaway)
+    
+    message = "Твои конкурсы:\n{0}\n\nКакой конкурс ты хочешь изменить?".format(
+        '\n'.join(map(lambda x: '    %s - %s' % (x.name, str(x.id)), user_giveaways))
+    )
+    keyboard = [['/g_edit %s' % str(x.id)] for x in user_giveaways]
+    reply_markup = telegram.ReplyKeyboardMarkup(keyboard,
+                                       one_time_keyboard=True,
+                                       resize_keyboard=True)
+    
+    message = "Какой конкурс ты хочешь изменить?"
+    buttons = [[telegram.InlineKeyboardButton(
+        text= '%s' % x.name, callback_data= 'EDIT ' + str(x.id))] for x in user_giveaways ]
+    reply_markup = telegram.InlineKeyboardMarkup(buttons)
+    update.message.reply_text(message, reply_markup=reply_markup)
+
+
+updater.dispatcher.add_handler(ConversationHandler(
+        entry_points=[CallbackQueryHandler(callback_query_handler)],
+        states={
+            1: [MessageHandler(Filters.text, name_input_by_user)],
+            2: [CallbackQueryHandler(button_click_handler)]
+        },
+        fallbacks=[CommandHandler('cancel', cancel)],
+        per_user=True
+    ))
+updater.dispatcher.add_handler(CommandHandler('tst', tst))
 updater.dispatcher.add_handler(CommandHandler('start', start))
 updater.dispatcher.add_handler(CommandHandler('help', help))
 updater.dispatcher.add_handler(CommandHandler('restart', restart))

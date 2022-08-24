@@ -41,3 +41,6 @@ class Giveaway(object):
         winnersNames = [x.name for x in self.winners]
         winnersStr = '\n'.join(winnersNames)
         return winnersStr
+
+    def is_Author(self, user_id :int) -> bool:
+        return self.author == user_id

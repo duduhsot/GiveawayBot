@@ -14,3 +14,4 @@ def saveGiveaway(giveaway :Giveaway):
         os.mkdir(GIVEAWAYS_PATH)
     with open(os.path.join(GIVEAWAYS_PATH, 'g_%s.pkl' % giveaway.id), 'wb') as giveaway_file:
         pickle.dump(giveaway, giveaway_file)
+
