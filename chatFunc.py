@@ -1,6 +1,7 @@
 from telegram.bot import Bot
 from telegram.update import Update
 from giveaway import Giveaway
+from locals import get_line
 
 class ChatFunc(object):
 
@@ -16,6 +17,6 @@ class ChatFunc(object):
                         message_id = update.message.message_id
                 ) 
 
-    def sendDontHavePermission(self, update :Update, giveaway :Giveaway):
+    def sendDontHavePermission(self, update :Update, giveaway :Giveaway, langId :int):
         self.bot.sendMessage(chat_id= update.effective_chat.id,
-            text="You do not have permission for this command!\nPlease contact %s." % giveaway.authorNick)
+            text=get_line(langId, 'err_no_g_NoW')) % giveaway.authorNick)

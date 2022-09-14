@@ -39,6 +39,7 @@ My commands:
     'Eng_err_wr_g_NoW': 'NumberOfWinners should be greater than zero',
     'Eng_err_wr_create_params': "Expected three parameters in format \"/g_create Now''name''description\", but got %s parameters",
     'Eng_err_wr_edit_params': "Expected four parameters in format \"/g_edit GiveawayId''Now''name''description\", but got %s parameters",
+    'Eng_err_no_access': "You do not have permission for this command!\nPlease contact the creator %s.",
 
     'Ru_cmd_help': 
         """
@@ -78,6 +79,7 @@ My commands:
     'Ru_err_wr_g_NoW': 'количество победителей должно быть больше нуля',
     'Ru_err_wr_create_params': "Ожидалось три параметра в виде \"/g_create Now''name''description\", но было получено %s",
     'Ru_err_wr_edit_params': "Ожидалось четыре параметра в виде \"/g_edit GiveawayId''Now''name''description\", но было получено %s",
+    'Ru_err_no_access': "У вас нет доступа к этой команде!\nПожалуйста свяжитесь с создателем %s.",
 }
 
 

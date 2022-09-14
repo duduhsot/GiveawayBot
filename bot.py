@@ -66,7 +66,7 @@ def checkIfAuthor(giveaway: Giveaway, update: Update, doStuff: Function):
     if giveaway.is_Author(update.effective_user.id):
         doStuff(giveaway, update)
     else:
-        chatFunc.sendDontHavePermission(update, giveaway)
+        chatFunc.sendDontHavePermission(update, giveaway, langId)
 
 
 def makeGiveawayPost(giveaway: Giveaway, update: Update):
@@ -232,7 +232,7 @@ def giveaway_subs(update: Update, cb: CallbackContext):
         bot.send_message(chat_id=update.effective_chat.id,
                          text=subsDsc)
     else:
-        chatFunc.sendDontHavePermission(update, giveaway)
+        chatFunc.sendDontHavePermission(update, giveaway, langId)
     chatFunc.deleteOriginalMessage(update)
 
 # /gf
@@ -249,7 +249,7 @@ def giveaway_finish(update: Update, cb: CallbackContext):
         makeGiveawayEndPost(giveaway, update, winners)
         saveGiveaway(giveaway)
     else:
-        chatFunc.sendDontHavePermission(update, giveaway)
+        chatFunc.sendDontHavePermission(update, giveaway, langId)
     chatFunc.deleteOriginalMessage(update)
 
 # /ge
@@ -300,7 +300,7 @@ def giveaway_edit(update: Update, command: str, photo_id: str = None):
         saveGiveaway(giveaway)
         makeGiveawayPost(giveaway, update)
     else:
-        chatFunc.sendDontHavePermission(update, giveaway)
+        chatFunc.sendDontHavePermission(update, giveaway, langId)
     chatFunc.deleteOriginalMessage(update)
 
 # handles messages with photos
