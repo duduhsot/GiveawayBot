@@ -83,5 +83,4 @@ My commands:
 
 def get_line(langId: int, line_name: str):
     key = '%s_%s' % (langs[langId], line_name)
-    print(key)
     return lines[key]

@@ -16,6 +16,7 @@ from telegram.ext.filters import Filters
 from telegram.ext import CallbackQueryHandler
 from telegram.parsemode import ParseMode
 from config import HEROKU_APP, LOCAL, TOKEN
+from database import get_DB, insert_giveaway
 from giveaway import Giveaway
 from log import Log
 from userInfo import UserInfo
@@ -389,6 +390,21 @@ updater.dispatcher.add_handler(MessageHandler(Filters.photo, photoHandler))
 # processes buttons requests
 updater.dispatcher.add_handler(CallbackQueryHandler(callback_query_handler))
 
+newGiveaway = Giveaway(
+    author = 228,
+    authorNick = "author name",
+    name = "giveaway name",
+    description = "giveaway description",
+    NumberOfWinners = 10,
+    id = uuid4(),
+    subscribers = [],
+    ended = False,
+    winners = [],
+    photoId = "some url"
+)
+insert_giveaway(newGiveaway)
+
+log.info('LOCAL:%s'%LOCAL)
 if LOCAL:
     log.info('polling messages...')
     updater.start_polling()
