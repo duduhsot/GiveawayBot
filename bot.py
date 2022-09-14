@@ -4,7 +4,7 @@ import os.path
 from pyclbr import Function
 import sys
 from typing import List
-from uuid import uuid4
+from uuid import UUID, uuid4
 import telegram
 from telegram.ext.updater import Updater
 from telegram.update import Update
@@ -16,11 +16,10 @@ from telegram.ext.filters import Filters
 from telegram.ext import CallbackQueryHandler
 from telegram.parsemode import ParseMode
 from config import HEROKU_APP, LOCAL, TOKEN
-from database import get_DB, insert_giveaway
+from database import giveaway_exists, load_giveaway, save_giveaway
 from giveaway import Giveaway
 from log import Log
 from userInfo import UserInfo
-import pickle
 from chatFunc import ChatFunc
 from locals import get_line
 
@@ -41,16 +40,23 @@ def restart_program():
     python = sys.executable
     os.execl(python, python, * sys.argv)
 
+
+def giveawayExists(giveawayId: str):
+    return giveaway_exists(giveawayId)
+    # return os.path.exists(os.path.join(GIVEAWAYS_PATH, 'g_%s.pkl' % guid))
+
 def loadGiveaway(giveawayId:str) -> Giveaway:
-    with open(os.path.join(GIVEAWAYS_PATH, 'g_%s.pkl' % giveawayId), 'rb') as giveaway_file:
-        giveaway :Giveaway = pickle.load(giveaway_file)
-        return giveaway
+    return load_giveaway(giveawayId)
+    # with open(os.path.join(GIVEAWAYS_PATH, 'g_%s.pkl' % giveawayId), 'rb') as giveaway_file:
+    #     giveaway :Giveaway = pickle.load(giveaway_file)
+    #     return giveaway
 
 def saveGiveaway(giveaway :Giveaway):
-    if not os.path.exists(GIVEAWAYS_PATH):
-        os.mkdir(GIVEAWAYS_PATH)
-    with open(os.path.join(GIVEAWAYS_PATH, 'g_%s.pkl' % giveaway.id), 'wb') as giveaway_file:
-        pickle.dump(giveaway, giveaway_file)
+    save_giveaway(giveaway)
+    # if not os.path.exists(GIVEAWAYS_PATH):
+    #     os.mkdir(GIVEAWAYS_PATH)
+    # with open(os.path.join(GIVEAWAYS_PATH, 'g_%s.pkl' % giveaway.id), 'wb') as giveaway_file:
+    #     pickle.dump(giveaway, giveaway_file)
 
 def checkIfAuthor(giveaway :Giveaway, update :Update, doStuff: Function):
     if giveaway.is_Author(update.effective_user.id):
@@ -108,9 +114,6 @@ def checkGiveawayId(update :Update,giveawayId :str):
                         text= get_line(langId, 'err_no_g_exists') % giveawayId)
         return False
     return True
-
-def giveawayExists(guid :str):
-    return os.path.exists(os.path.join(GIVEAWAYS_PATH, 'g_%s.pkl' % guid))
 
 # /start
 def start(update: Update, context: CallbackContext):
@@ -290,7 +293,7 @@ def callback_query_handler(update: Update, context: CallbackContext):
     if callbackData.startswith(SUBSCRIBE_KEYWORD):
         giveawayId = callbackData.replace(SUBSCRIBE_KEYWORD, '')
         giveaway = loadGiveaway(giveawayId)
-        user = UserInfo(update)
+        user = UserInfo(update.effective_user.id, update.effective_user.name)
         if not giveaway.containsUser(user):
             giveaway.subscribers.append(user)
             saveGiveaway(giveaway)
@@ -303,7 +306,7 @@ def callback_query_handler(update: Update, context: CallbackContext):
     if callbackData.startswith(UNSUBSCRIBE_KEYWORD):
         giveawayId = callbackData.replace(UNSUBSCRIBE_KEYWORD, '')
         giveaway = loadGiveaway(giveawayId)
-        user = UserInfo(update)
+        user = UserInfo(update.effective_user.id, update.effective_user.name)
         sameUser = user.findSame(giveaway.subscribers)
         if sameUser:
             giveaway.subscribers.remove(sameUser)
@@ -389,20 +392,6 @@ updater.dispatcher.add_handler(CommandHandler('g_finish', giveaway_finish))
 updater.dispatcher.add_handler(MessageHandler(Filters.photo, photoHandler)) 
 # processes buttons requests
 updater.dispatcher.add_handler(CallbackQueryHandler(callback_query_handler))
-
-newGiveaway = Giveaway(
-    author = 228,
-    authorNick = "author name",
-    name = "giveaway name",
-    description = "giveaway description",
-    NumberOfWinners = 10,
-    id = uuid4(),
-    subscribers = [],
-    ended = False,
-    winners = [],
-    photoId = "some url"
-)
-insert_giveaway(newGiveaway)
 
 log.info('LOCAL:%s'%LOCAL)
 if LOCAL:
