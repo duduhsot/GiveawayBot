@@ -1,7 +1,7 @@
 
 
-TOKEN = "5726668567:AAEnt_hRMirItfq2Jrn-srH8OGRz_oVjNOI"
-HEROKU_APP = "chat-bot-yuki"
+TOKEN = "chat-bot-id"
+HEROKU_APP = "chat-bot-app-name"
 LOCAL = False 
-MONGODB_CONNECTION_STRING = 'mongodb+srv://user:user@cluster0.fnguq3m.mongodb.net/?retryWrites=true&w=majority'
+MONGODB_CONNECTION_STRING = 'mongoDB-connection-string'
 
