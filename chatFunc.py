@@ -19,4 +19,4 @@ class ChatFunc(object):
 
     def sendDontHavePermission(self, update :Update, giveaway :Giveaway, langId :int):
         self.bot.sendMessage(chat_id= update.effective_chat.id,
-            text=get_line(langId, 'err_no_g_NoW') % giveaway.authorNick)
+            text=get_line(langId, 'err_no_access') % giveaway.authorNick)
