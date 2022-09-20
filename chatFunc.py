@@ -13,6 +13,11 @@ class ChatFunc(object):
                         text = message)
                         
     def deleteOriginalMessage(self, update :Update):
+        if not update.message:
+            self.bot.delete_message(chat_id = update.channel_post.chat_id,
+                            message_id = update.channel_post.message_id
+                    ) 
+            return
         self.bot.deleteMessage(chat_id = update.message.chat_id,
                         message_id = update.message.message_id
                 ) 
