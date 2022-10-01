@@ -64,7 +64,7 @@ def saveGiveaway(giveaway: Giveaway):
 
 
 def checkIfAuthor(giveaway: Giveaway, update: Update, doStuff: Function):
-    if not update.effective_user: 
+    if not update.effective_user:
         doStuff(giveaway, update)
         return
     if giveaway.is_Author(update.effective_user.id):
@@ -127,15 +127,15 @@ def checkGiveawayId(update: Update, giveawayId: str):
         return False
     return True
 
-# /start
+
 def start(update: Update, context: CallbackContext):
     update.message.reply_text(get_line(langId, 'cmd_start'))
 
-# /help
+
 def help(update: Update, context: CallbackContext):
     update.message.reply_text(get_line(langId, 'cmd_help'))
 
-# /restart
+
 def restart(update: Update, context: CallbackContext):
     if not LOCAL:
         return
@@ -144,11 +144,6 @@ def restart(update: Update, context: CallbackContext):
     chatFunc.deleteOriginalMessage(update)
     restart_program()
 
-
-# /gc
-# def giveaway_createHandler(update: Update, cb: CallbackContext):
-#     log.info('processing command "{0}"'.format(update.message.text))
-#     giveaway_create(update, update.effective_message.text)
 
 # creates a new giveaway and a post about it
 def giveaway_create(update: Update, command: str, photo_id: str = None):
@@ -196,8 +191,8 @@ def giveaway_create(update: Update, command: str, photo_id: str = None):
                     format(newGiveaway.id, update.effective_chat.id, newGiveaway.numberOfWinners, newGiveaway.name, newGiveaway.description))
     chatFunc.deleteOriginalMessage(update)
 
-# /gp
-def giveaway_post(update: Update, command :str):
+
+def giveaway_post(update: Update, command: str):
     log.info('processing command "{0}"'.format(command))
     giveawayId = command.replace('/g_post', '').strip()
     if not checkGiveawayId(update, giveawayId):
@@ -210,31 +205,51 @@ def giveaway_post(update: Update, command :str):
                     format(giveaway.id, update.effective_chat.id))
     chatFunc.deleteOriginalMessage(update)
 
-# /gs
-def giveaway_subs(update: Update, command :str):
+
+def divide_chunks(list, chunk_length: int):
+    for i in range(0, len(list), chunk_length):
+        yield list[i:i + chunk_length]
+
+
+def parseName(user: UserInfo):
+    name = ''
+    if user.name.startswith('@'):
+        name = user.name[1:]
+    else:
+        name = user.name
+    return "<a href='tg://user?id=%s'>%s</a>" % (user.id, name)
+
+
+def giveaway_subs(update: Update, command: str):
     log.info('processing command "{0}"'.format(command))
     giveawayId = command.replace('/g_subs', '').strip()
     if not checkGiveawayId(update, giveawayId):
         return
     giveaway = loadGiveaway(giveawayId)
     if update.effective_user.id == giveaway.author:
-        subs = [sub.name for sub in giveaway.subscribers]
+        subs = [parseName(sub) for sub in giveaway.subscribers]
+        subs_chunks = divide_chunks(subs, 1)
+        # for chunk in subs_chunks:
         subsDsc = get_line(langId, 'cmd_giveaway_subs').format(
             str(len(subs)), '\n'.join(subs))
+        print(subsDsc)
         bot.send_message(chat_id=update.effective_chat.id,
-                         text=subsDsc)
+                         parse_mode=ParseMode.HTML,
+                         text='\n'.join(subs))
     else:
         chatFunc.sendDontHavePermission(update, giveaway, langId)
     chatFunc.deleteOriginalMessage(update)
 
 # /gf
-def giveaway_finish(update: Update, command :str):
+
+
+def giveaway_finish(update: Update, command: str):
     log.info('processing command "{0}"'.format(command))
     giveawayId = command.replace('/g_finish', '').strip()
     if not checkGiveawayId(update, giveawayId):
         return
     giveaway = loadGiveaway(giveawayId)
-    if not update.effective_user: 
+    if not update.effective_user:
         winners = giveaway.getWinners()
         makeGiveawayEndPost(giveaway, update, winners)
         saveGiveaway(giveaway)
@@ -247,11 +262,6 @@ def giveaway_finish(update: Update, command :str):
     else:
         chatFunc.sendDontHavePermission(update, giveaway, langId)
     chatFunc.deleteOriginalMessage(update)
-
-# /ge
-# def giveaway_editHandler(update: Update, cb: CallbackContext):
-#     log.info('processing command "{0}"'.format(update.message.text))
-#     giveaway_edit(update, update.effective_message.text)
 
 
 def giveaway_edit(update: Update, command: str, photo_id: str = None):
@@ -297,28 +307,14 @@ def giveaway_edit(update: Update, command: str, photo_id: str = None):
         chatFunc.sendDontHavePermission(update, giveaway, langId)
     chatFunc.deleteOriginalMessage(update)
 
-# handles messages with photos
-# def photoHandler(update: Update, cb: CallbackContext):
-#     log.info('processing photo with caption "{0}"'.format(
-#         update.effective_message.caption))
-#     message = update.effective_message
-#     text = message.caption
-#     photoId = message.photo[0].file_id
-#     print(str(len(message.photo)))
-#     print([x.file_id for x in message.photo])
-#     print([x.file_size for x in message.photo])
-#     if (bool(text)) and (text.startswith('/g_create')):
-#         giveaway_create(update, message.caption, photoId)
-#     if (bool(text)) and (text.startswith('/g_edit')):
-#         giveaway_edit(update, message.caption, photoId)
 
-
-def is_subscribed(update: Update, user_id :str):
+def is_subscribed(update: Update, user_id: str):
     try:
         update.effective_chat.get_member(user_id)
         return True
-    except :
+    except:
         return False
+
 
 def callback_query_handler(update: Update, context: CallbackContext):
     log.info('processing callback "{0}"'.format(update.callback_query.data))
@@ -330,7 +326,7 @@ def callback_query_handler(update: Update, context: CallbackContext):
         # check subscription
         isSubscribed = is_subscribed(update, user.id)
         log.info('User @{0} subscribed:"{1}"'.
-            format(user.name, isSubscribed))
+                 format(user.name, isSubscribed))
         if isSubscribed:
             if not giveaway.containsUser(user):
                 giveaway.subscribers.append(user)
@@ -363,7 +359,7 @@ def callback_query_handler(update: Update, context: CallbackContext):
         return
     update.callback_query.answer()
 
-# inDev
+
 def inDev(update: Update, context: CallbackContext):
     update.message.reply_text(
         "In development")
@@ -399,10 +395,10 @@ def tst(update: Update, context: CallbackContext):
 
 
 def forwarder(update: Update, context: CallbackContext):
-    
-    text :str = ''
-    photoId : str = ''
-    
+
+    text: str = ''
+    photoId: str = ''
+
     if update.effective_message.caption != None:
         text = update.effective_message.caption
     if update.effective_message.text != None:
@@ -413,21 +409,21 @@ def forwarder(update: Update, context: CallbackContext):
 
     if update.effective_user:
         authorId = update.effective_user.id
-    
-    log.info('Processing new message\n\nText:"{0}"\n\nphotoId:"{1}"\n'.
-        format(text, photoId))
 
-    if not text: 
+    log.info('Processing new message\n\nText:"{0}"\n\nphotoId:"{1}"\n'.
+             format(text, photoId))
+
+    if not text:
         return
 
     if text.startswith('/restart'):
         log.info('launching restart')
         restart(update, context)
-    
+
     if text.startswith('/start'):
         log.info('launching start')
         start(update, context)
-    
+
     if text.startswith('/help'):
         log.info('launching help')
         help(update, context)
