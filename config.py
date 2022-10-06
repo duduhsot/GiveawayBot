@@ -1,7 +1,7 @@
 
 
-TOKEN = "chat-bot-id"
-HEROKU_APP = "chat-bot-app-name"
+TOKEN = "5648600381:AAG3MP_PJGGBeqsmcm_HT0EgWxGYS8SGCe0"
+HEROKU_APP = "dudushotgg"
 LOCAL = False 
 MONGODB_CONNECTION_STRING = 'mongoDB-connection-string'
 
