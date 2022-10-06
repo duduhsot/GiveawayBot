@@ -1,0 +1,50 @@
+{
+    "name": "Telegram  bot",
+    "description": "A Telegram refferal bot project.",
+    "keywords": [
+        "telegram",
+        "API",
+        "accounts",
+        "Pyrogram bot"
+    ],
+    "repository": "https://github.com/szsupunma",
+    "website": "https://supun.ml",
+    "success_url": "https://t.me/MafiaPremiumAccBot",
+    "env": {
+        "API_ID": {
+            "description": "Get this value from my.telegram.org",
+            "required":true
+        },
+        "API_HASH": {
+            "description": "Get this value from my.telegram.org",
+            "required":true
+        },
+        "BOT_TOKEN": {
+            "description": "Get this value from @Botfather",
+            "required":true
+        },
+        "CHANNEL_ID": {
+            "description": "Need to fill telegram channel id to this part , first add bot as admin in channel you can get channel id forwarding channel message to this bot @googleimgbot and reply as /id",
+            "required":true
+        },
+        "DATABASE": {
+            "description": "Mongo data base url",
+            "required":true
+        },
+        "LOGS": {
+            "description": "Bot owner/admin id get it from @szrosebot giveing /id or /info command",
+            "required":true
+        }
+    },
+    "buildpacks": [
+        {
+            "url": "heroku/python"
+        }
+    ],
+    "formation": {
+        "worker": {
+            "quantity": 1,
+            "size": "free"
+        }
+    }
+}
